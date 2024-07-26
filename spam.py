@@ -20,6 +20,14 @@ class AntiSpam(commands.Cog):
         self.mention_counts = {}
         self.mentions_counters = {}
 
+    async def time_out(self, time, member, message):
+        try:
+            await member.timeout(until=disnake.utils.utcnow() + timedelta(seconds=time))
+        except Exception:
+            await message.channel.send('кажется что тебя нельзя замутить((')
+        else:
+            pass
+
     async def SpamCheck(self, message):
         data = def_config.read_config(guild_id=guild_id)
         if data['auto_mod']['completed'] == 1 and data['auto_mod']['auto_mod_on'] == 1:
@@ -30,7 +38,7 @@ class AntiSpam(commands.Cog):
             if len(message.content.split()) > ctx:
                 words = message.content.split()
                 if any(words.count(word) > data['auto_mod']['spam_ctx_count'] for word in words):
-                    await def_time_out.time_out(time=600, member=message.author, message=message, text=False)
+                    await self.time_out(time=600, member=message.author, message=message)
                     embed = disnake.Embed(
                         title=f'{message.author.name} замучен за спам',
                         description=f'тип спама - слова в контексте\nмут - 10 минут',
@@ -40,7 +48,7 @@ class AntiSpam(commands.Cog):
 
             # Проверка на упоминания в контексте
             if message.mentions and len(message.mentions) > mention_ctx and message.author != self.bot.user:
-                await def_time_out.time_out(time=600, member=message.author, message=message, text=False)
+                await self.time_out(time=600, member=message.author, message=message)
                 embed = disnake.Embed(
                     title=f'{message.author.name} замучен за спам',
                     description=f'тип спама - упоминания в контексте\nмут - 10 минут',
@@ -64,7 +72,7 @@ class AntiSpam(commands.Cog):
                         self.mention_counts[message.author.id] = 1
 
                     if self.mention_counts[message.author.id] > mention:
-                        await def_time_out.time_out(time=600, member=message.author, message=message, text=False)
+                        await self.time_out(time=600, member=message.author, message=message)
                         embed = disnake.Embed(
                             title=f'{message.author.name} замучен за спам',
                             description=f'тип спама - упоминания\nмут - 10 минут',
@@ -106,7 +114,7 @@ class AntiSpam(commands.Cog):
 
                 # Проверяем, достиг ли счетчик значения N для автора сообщения
                 if counter['current_count'] > mention:
-                    await def_time_out.time_out(time=600, member=message.author, message=message, text=False)
+                    await self.time_out(time=600, member=message.author, message=message)
                     embed = disnake.Embed(
                         title=f'{message.author.name} замучен за спам',
                         description=f'тип спама - упоминания\nмут - 10 минут',
@@ -133,7 +141,7 @@ class AntiSpam(commands.Cog):
 
             # проверка на сообщения подряд
             if self.message_counts[author_id]['count'] > massage:
-                await def_time_out.time_out(time=600, member=message.author, message=message, text=False)
+                await self.time_out(time=600, member=message.author, message=message)
                 embed = disnake.Embed(
                     title=f'{message.author.name} замучен за спам',
                     description=f'тип спама - сообщения\nмут - 10 минут',
@@ -146,7 +154,8 @@ class AntiSpam(commands.Cog):
 
     @commands.Cog.listener()
     async def on_message(self, message):
-          await self.SpamCheck(message)
+        # проверку на права администратора сделайте сами мне лень
+        await self.SpamCheck(message)
 
 
 def setup(bot):
