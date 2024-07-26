@@ -13,3 +13,7 @@ bot.add_cog(filenamelink.LinkAutoMod(FluffBot))
 
 bot.run(TOKEN)
 ```
+install
+```
+collections
+```
